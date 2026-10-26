@@ -31,3 +31,20 @@ Cette interface vise une **démonstration de méthodes de suivi**, pas la produc
 **Statut :** prototype navigateur ; aucune qualification métrologique ou mise en production n'est attestée par ce README.
 
 [Catalogue des projets Studio Niko Design](https://github.com/Nikoju1977).
+
+
+## Utilisation et vérifications
+
+Le dépôt contient une application autonome en `index.html`. Pour la consulter dans un navigateur moderne, ouvrir ce fichier ou démarrer un serveur local :
+
+```bash
+python3 -m http.server 8000
+```
+
+Puis accéder à http://localhost:8000/.
+
+**Avant un déploiement professionnel :** inventorier les données enregistrées par l'interface, vérifier leur sauvegarde et leur restauration, définir les profils d'accès, valider les calculs d'incertitude sur des cas de référence et conserver la traçabilité des procédures appliquées. Une interface de métrologie ne constitue pas à elle seule une preuve de conformité à un référentiel ISO.
+
+**Maturité :** prototype ; aucun audit de certification, contrôle métrologique indépendant ni test navigateur n'est revendiqué ici.
+
+[Voir les autres projets Studio Niko Design](https://github.com/Nikoju1977).
