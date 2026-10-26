@@ -1,0 +1,32 @@
+name: CI — static HTML smoke
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate HTML entry-point structure
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+
+          page = Path("index.html")
+          assert page.is_file() and page.stat().st_size > 0, "Missing or empty index.html"
+          html = page.read_text(encoding="utf-8")
+          lowercase = html.lower()
+          for expected in ("<!doctype html", "<html", "<head", "<title", "<body", "</html>"):
+              assert expected in lowercase, f"Missing document structure: {expected}"
+
+          parser = HTMLParser(convert_charrefs=True)
+          parser.feed(html)
+          parser.close()
+          print("Static entry point parsed successfully")
+          PY
