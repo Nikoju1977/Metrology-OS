@@ -13,3 +13,21 @@ Les références normatives sont identifiées et reliées à leurs sources offic
 
 ## Données
 Le prototype fonctionne principalement côté navigateur. Pour une utilisation industrielle multi-utilisateur, prévoir une base de données, authentification, sauvegardes, gestion des rôles et veille normative serveur.
+
+
+## Démarrage et périmètre
+
+**Thème : industrie · métrologie · gestion des équipements.** Aucun installateur n'est nécessaire pour l'interface actuelle : ouvrir `index.html` ou lancer `python3 -m http.server 8000` dans le dossier du projet, puis visiter http://localhost:8000/.
+
+Cette interface vise une **démonstration de méthodes de suivi**, pas la production d'un certificat d'étalonnage accrédité. Les résultats et décisions de conformité doivent être confirmés par une procédure maîtrisée, des équipements étalonnés et des personnes compétentes. Les références aux normes ne constituent pas une certification ISO ni une autorisation de redistribution de leurs textes.
+
+## Points à valider pour une mise en production
+
+- Traçabilité des mesures, des versions de procédures et des décisions.
+- Sauvegardes, gestion des rôles et journal d'audit immuable.
+- Tests de calculs d'incertitude avec cas de référence validés.
+- Contrôles d'accessibilité et essais multi-navigateurs.
+
+**Statut :** prototype navigateur ; aucune qualification métrologique ou mise en production n'est attestée par ce README.
+
+[Catalogue des projets Studio Niko Design](https://github.com/Nikoju1977).
