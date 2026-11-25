@@ -30,3 +30,6 @@ jobs:
           parser.close()
           print("Static entry point parsed successfully")
           PY
+
+      - name: Verify production calculation functions
+        run: node tests/metrology.test.cjs
