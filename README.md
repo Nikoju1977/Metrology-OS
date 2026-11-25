@@ -10,9 +10,21 @@ Une GMAO métrologique multisectorielle pour structurer les équipements, procé
 
 [English overview](#english-overview) · [Quickstart](#quickstart--démarrage-rapide) · [Issues](https://github.com/Nikoju1977/Metrology-OS/issues)
 
-## Qualification métrologique — cas de référence proposés
+## Fiabilisation du moteur — 25 novembre 2026
 
-**Priorité P0 : aucune libération de produit sur la base de ce prototype.** La synthèse de conformité peut rester verte malgré un point non évalué ; une incertitude non renseignée peut être assimilée à zéro. Ces défauts sont présents dans le code inspecté et ne sont pas corrigés par cette documentation.
+[Correctif calculs et décisions](https://github.com/Nikoju1977/Metrology-OS/commit/a9f177b390d79f3b19e686b495d76c0b1791ddba) · [Priorité des non-conformités](https://github.com/Nikoju1977/Metrology-OS/commit/338080ef2ce8538cfb0fa2b03ccf2f55e230a773).
+
+- Validation stricte des entrées, incertitudes non négatives, tolérances positives, coefficients nuls et négatifs pris en compte, facteur k configurable.
+- Somme quadratique par Math.hypot ; calcul indépendant, sans covariances ni degrés de liberté. Comparaison décimale exacte par BigInt pour les frontières de décision, sous réserve des limites de représentation des champs HTML ; affichage numérique arrondi.
+- Un point incomplet bloque une synthèse conforme ; une non-conformité identifiée prime même si d'autres points sont incomplets. La décision déclarée et la décision calculée sont conservées séparément avec les saisies brutes.
+- Plus de remise en service ni de recalcul automatique d'échéance lors de l'enregistrement ; une décision non conforme place l'équipement en quarantaine. Les certificats, parc, procédures et autres modules sont conservés ; leurs parcours n'ont pas été qualifiés.
+- 25 assertions JavaScript initiales et 4 assertions complémentaires ont réussi pendant la rédaction des fonctions. Source relue après publication. Aucun test navigateur, essai avec instrument, validation normative indépendante ou déploiement vérifié.
+
+Les constats ci-dessous sur les défauts corrigés décrivent l'état historique avant ces commits. Le logiciel reste non qualifié pour la libération industrielle ; les données d'essai doivent être synthétiques. Le stockage, les certificats déclaratifs, les approbations et la traçabilité restent à renforcer.
+
+## Qualification métrologique — cas de référence historiques
+
+**Priorité P0 : aucune libération de produit sur la base de ce prototype.** La synthèse de conformité peut rester verte malgré un point non évalué ; une incertitude non renseignée peut être assimilée à zéro. Ces défauts historiques ont fait l'objet des correctifs décrits ci-dessus ; leur validation indépendante reste nécessaire.
 
 Les cas ci-dessous sont des oracles de calcul construits sur des données fictives, non des résultats de tests exécutés. Toutes les valeurs d'un même cas utilisent une unité cohérente.
 
