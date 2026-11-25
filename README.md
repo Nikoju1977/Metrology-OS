@@ -10,7 +10,24 @@ Une GMAO métrologique multisectorielle pour structurer les équipements, procé
 
 [English overview](#english-overview) · [Quickstart](#quickstart--démarrage-rapide) · [Issues](https://github.com/Nikoju1977/Metrology-OS/issues)
 
-> [Insérer ici un GIF de démonstration / Insert demo GIF here]
+## Qualification métrologique — cas de référence proposés
+
+**Priorité P0 : aucune libération de produit sur la base de ce prototype.** La synthèse de conformité peut rester verte malgré un point non évalué ; une incertitude non renseignée peut être assimilée à zéro. Ces défauts sont présents dans le code inspecté et ne sont pas corrigés par cette documentation.
+
+Les cas ci-dessous sont des oracles de calcul construits sur des données fictives, non des résultats de tests exécutés. Toutes les valeurs d'un même cas utilisent une unité cohérente.
+
+| Cas | Entrée synthétique | Résultat attendu |
+| --- | --- | --- |
+| Somme quadratique | Deux incertitudes-types directes 3 et 4, coefficients 1, indépendance supposée | uc = 5 ; U = 10 pour k = 2 |
+| Limite de conformité | E = 8 ; U = 2 ; tolérance = 10 | Conforme selon la règle implémentée |
+| Zone de garde | E = 9 ; U = 2 ; tolérance = 10 | Zone de garde |
+| Non-conformité | E = 13 ; U = 2 ; tolérance = 10 | Non conforme |
+| Donnée absente | Référence, indication, incertitude ou tolérance manquante | Bloquer toute décision globale de libération ; correction nécessaire |
+| Coefficient nul | Contribution avec coefficient de sensibilité 0 | Contribution nulle ; le traitement actuel doit être corrigé |
+
+Le facteur k = 2 n'établit pas à lui seul une probabilité de couverture donnée. Documenter les distributions, corrélations, unités, incertitudes des étalons et règles de décision approuvées. Une empreinte SHA-256 locale ne suffit pas à établir la traçabilité métrologique, laquelle requiert notamment une chaîne documentée d'étalonnages et leurs incertitudes.
+
+**English:** Proposed reference cases cover uncertainty propagation, decision boundaries and missing inputs. No runtime execution or qualification was performed. Product release must remain blocked pending independent validation and remediation. Normative references are retained, not independently reassessed in this documentation revision.
 
 > **Prototype non qualifié.** Inspection statique du code uniquement : aucun nouveau test d'exécution, audit de sécurité, benchmark, test physique, validation industrielle ou clinique n'a été effectué pour cette révision. Utiliser des données synthétiques.
 
