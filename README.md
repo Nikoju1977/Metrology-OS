@@ -1,4 +1,81 @@
-# Metrology OS
+# Metrology OS V4 — Studio Niko Design
+
+**Browser-native measurement management, uncertainty budgets and traceable internal calibration records.**
+
+Une GMAO métrologique multisectorielle pour structurer les équipements, procédures, interventions et décisions de mesure sans serveur obligatoire.
+
+![UI](https://img.shields.io/badge/UI-Vanilla_JS-F7DF1E) ![Storage](https://img.shields.io/badge/Storage-Local_first-00897B) ![Integrity](https://img.shields.io/badge/Integrity-SHA--256-326CE5) ![Status](https://img.shields.io/badge/Status-prototype-orange) ![License](https://img.shields.io/badge/License-restricted-lightgrey)
+
+**STUDIO NIKO DESIGN** · Build smart. Stay lightweight. Create without limits.
+
+[English overview](#english-overview) · [Quickstart](#quickstart--démarrage-rapide) · [Issues](https://github.com/Nikoju1977/Metrology-OS/issues)
+
+> [Insérer ici un GIF de démonstration / Insert demo GIF here]
+
+> **Prototype non qualifié.** Inspection statique du code uniquement : aucun nouveau test d'exécution, audit de sécurité, benchmark, test physique, validation industrielle ou clinique n'a été effectué pour cette révision. Utiliser des données synthétiques.
+
+## Pourquoi ce projet ?
+
+Rassembler le suivi métrologique et les méthodes de décision dans une interface directement exploitable pour la démonstration et la qualification. Le calcul déterministe est lisible et reproductible en principe, sans dépendance à un LLM. Les référentiels sont des références de travail, non des preuves de conformité.
+
+## Fonctionnalités clés
+
+- 📏 Bibliothèque d'instruments, recherche multicritère, parc, échéances et alertes.
+- 📋 Registre des procédures avec indices, statuts, rédacteur, vérificateur et approbateur déclarés.
+- 🧮 Budget d'incertitude simplifié, calcul des erreurs et règle de décision par bande de garde.
+- 📊 Historique d'étalonnage et périodicités proposées selon criticité, échecs et dérives.
+- 🔐 Approbation interne avec empreinte SHA-256, identification QR, certificats internes imprimables et export JSON.
+
+## Architecture & sécurité
+
+```mermaid
+flowchart TD
+  A[Instrument register] --> B[Procedure and asset]
+  B --> C[Measurement entry]
+  C --> D[Error and decision rule]
+  E[Uncertainty budget] --> D
+  D --> F[Internal calibration record]
+  F --> G[Interval recommendation]
+  F --> H[Internal approval / SHA-256]
+  H --> I[Local storage / JSON export]
+  F --> I
+```
+
+### Algorithmes inspectés
+
+| Fonction dans `index.html` | Méthode réelle |
+| --- | --- |
+| `calcUncertainty` | Normale : valeur / diviseur ; rectangulaire : valeur / √3 ; triangulaire : valeur / √6 ; directe : valeur ; multiplication par coefficient de sensibilité, somme quadratique, U = 2 uc. |
+| `computeOpPoints` | E = indication − référence ; conforme si abs(E) + U ≤ tolérance, non conforme si abs(E) − U > tolérance, sinon zone de garde ; tolérance absente ou nulle = non évalué. |
+| `calcAssetRecommendation` | Intervalle de base multiplié par facteurs heuristiques (criticité, non-conformités, variation de l'erreur maximale, trois dernières interventions), borné entre 3 et 36 mois. |
+| `createApproval` / `sha256` | Hachage de la sérialisation JSON de l'enregistrement, de l'identité déclarée, du commentaire et de l'horodatage local. Web Crypto avec repli SHA-256 JavaScript. |
+
+### Points critiques à corriger avant usage professionnel
+
+- L'incertitude utilise k=2 et ne traite pas les covariances ni les degrés de liberté. La saisie vide est parfois assimilée à zéro, et un coefficient de sensibilité nul est remplacé par 1 ; valider les entrées et les cas limites.
+- La synthèse verte de `computeOpPoints` peut apparaître lorsque des points sont incomplets ou non évalués. Ne pas interpréter cet affichage comme une libération de produit. Le statut global est saisi séparément ; une règle de blocage et une validation humaine sont nécessaires.
+- La périodicité est une suggestion heuristique, pas une règle réglementaire ni une optimisation statistique validée. Ne pas prolonger un intervalle réglementaire à partir de ce calcul.
+- Le stockage `localStorage` (avec repli mémoire) est modifiable, non chiffré et non partagé. Des suppressions sont possibles. Le nom et la fonction de l'approbateur sont déclaratifs, l'heure provient du poste et l'empreinte n'est ni une signature numérique authentifiée ni un journal inaltérable. Le code inspecté ne démontre pas une vérification indépendante et systématique de l'empreinte lors de la consultation. Les QR encodent notamment des données d'équipement en clair.
+- Le code embarque un générateur QR tiers (avis MIT de Kazuhiko Arase visible) : aucune dépendance à installer n'est requise, mais ce n'est pas une absence de code tiers.
+
+## Référentiels et limites de conformité
+
+| Référentiel | Positionnement |
+| --- | --- |
+| [ISO 10012:2026](https://www.iso.org/standard/10012) | Management de la mesure : suivi des équipements et processus à qualifier. |
+| [ISO/IEC 17025:2017](https://www.iso.org/standard/66912.html) | Compétence des laboratoires : références, incertitudes, traçabilité et décisions à valider ; pas d'accréditation. |
+| [JCGM 100 et JCGM 106](https://www.bipm.org/en/web/guest/publications/guides) | Guides pour incertitude et évaluation de conformité ; modèle du prototype non validé. |
+| ISO 9001 et référentiels sectoriels | Gestion documentaire et suivi des ressources de mesure ; applicabilité à déterminer. |
+
+Le catalogue de normes intégré indique une date de vérification au 24 septembre 2026 ; ce README ne constitue pas une revue de toutes ses notices. Les textes protégés ne sont pas redistribués. Aucune conformité à ISO 13485, IEC 62304 ou FDA 21 CFR Part 11 n'est revendiquée.
+
+## Quickstart / Démarrage rapide
+
+Ouvrir `index.html` ou lancer `python3 -m http.server 8000` à la racine, puis http://localhost:8000/. Utiliser exclusivement des données fictives pour les essais ; consulter une fiche instrument, saisir des valeurs de référence et exporter le registre JSON. L'export n'établit pas une restauration validée.
+
+## Documentation technique historique
+
+Les informations antérieures ci-dessous sont conservées pour le contexte ; les constats de l'inspection statique et les limites explicites ci-dessus priment sur toute formulation historique trop générale.
 
 GMAO métrologique autonome en HTML : parc instruments, procédures, étalonnages, périodicités, incertitudes, certificats, conformité, référentiels et recherche.
 
@@ -48,3 +125,24 @@ Puis accéder à http://localhost:8000/.
 **Maturité :** prototype ; aucun audit de certification, contrôle métrologique indépendant ni test navigateur n'est revendiqué ici.
 
 [Voir les autres projets Studio Niko Design](https://github.com/Nikoju1977).
+
+## Roadmap & contribution
+
+Propositions non terminées :
+
+- [ ] Corriger les validations d'entrée, les états non évalués et la règle de libération.
+- [ ] Valider les calculs sur jeux de référence indépendants et documenter les hypothèses.
+- [ ] Mettre en place identité, droits, sauvegarde/restauration, journal append-only protégé et vérification d'intégrité.
+- [ ] Qualifier la veille normative, les périodicités et les procédures par domaine.
+
+**Première contribution / `good first issue` (label proposé, non créé ici) :** Proposer un cas synthétique de calcul d'incertitude ou de bande de garde avec résultat attendu indépendant. Les rapports reproductibles sont bienvenus dans les [issues](https://github.com/Nikoju1977/Metrology-OS/issues). Ne publier aucune donnée personnelle, industrielle, médicale ou confidentielle. Toute modification ou redistribution reste soumise aux droits existants.
+
+## English overview
+
+Metrology OS is a browser-based measurement management prototype with instrument and procedure registers, calibration records, a simplified uncertainty budget, a guard-band rule, interval suggestions and internal approval hashes. Local storage is editable and not encrypted; an approval hash is not an authenticated signature or immutable audit trail. Input-validation gaps, incomplete-point handling and the fixed coverage factor require correction and independent validation. It is not an accredited calibration system. Serve the root over localhost or open index.html with synthetic data.
+
+No new runtime, security, clinical or industrial validation was performed during this documentation update. Feedback is welcome within the existing rights framework.
+
+## Licence & auteur / License & author
+
+**© 2026 Studio Niko Design — [Nikoju1977](https://github.com/Nikoju1977).** [Notice de droits / Copyright notice](LICENSE.md) : tous droits réservés pour les contributions originales concernées ; l'accès public au code ne constitue pas une licence open source. Les composants tiers conservent leurs licences propres. Aucun fichier de licence n'a été modifié.
