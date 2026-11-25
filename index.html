@@ -1626,15 +1626,22 @@ function closeGmModal(){$('#gmModal').classList.remove('open')}
 $('#gmModal').onclick=e=>{if(e.target.id==='gmModal')closeGmModal()}
 function fmt(v){if(v===null||v===undefined||v==='')return '—';const n=Number(v);return Number.isFinite(n)?String(Number(n.toPrecision(12))):'—'}
 function addOpPoint(v={}){const tr=document.createElement('tr');tr.innerHTML=`<td><input class="table-input p-label" value="${esc(v.label||'')}"></td><td><input class="table-input p-ref" type="number" step="any" value="${v.ref??''}"></td><td><input class="table-input p-ind" type="number" step="any" value="${v.ind??''}"></td><td class="p-err">—</td><td><input class="table-input p-u" type="number" step="any" value="${v.u??''}"></td><td><input class="table-input p-tol" type="number" step="any" value="${v.tol??''}"></td><td class="p-dec">—</td>`;$('#opPoints').appendChild(tr);computeOpPoints()}
-function numberInput(v){if(typeof v!=="string"&&typeof v!=="number")return null;const s=String(v).trim();if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(s))return null;const n=Number(s);return Number.isFinite(n)?n:null;}
+function numberInput(v){if(typeof v!=="string"&&typeof v!=="number")return null;const s=String(v).trim();if(s.length>120||!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(s))return null;const n=Number(s);if(!Number.isFinite(n)||(n===0&&/[1-9]/.test(s.split(/e/i)[0])))return null;return n;}
 function decimalParts(v){const s=String(v).trim(),m=s.match(/^([+-]?)(\d*)(?:\.(\d*))?(?:e([+-]?\d+))?$/i);if(!m||s.length>120||!(m[2]||m[3]))throw Error("Nombre invalide");const exp=Number(m[4]||0)-(m[3]||"").length;if(!Number.isInteger(exp)||Math.abs(exp)>400)throw Error("Exposant hors plage");return {n:BigInt((m[1]==="-"?"-":"")+(m[2]+(m[3]||"")||"0")),exp};}
 function evaluatePoint(rv,iv,uv,tv){
  const ref=numberInput(rv),ind=numberInput(iv),u=numberInput(uv),tol=numberInput(tv);
- const error=ref===null||ind===null||!Number.isFinite(ind-ref)?null:ind-ref;
- const result={ref,ind,u,tol,error,decision:"Non évalué"};
- if(error===null||u===null||u<0||tol===null||tol<=0)return result;
- try{const parts=[rv,iv,uv,tv].map(decimalParts),e=Math.min(...parts.map(p=>p.exp)),[a,b,c,d]=parts.map(p=>p.n*10n**BigInt(p.exp-e));const signed=b-a,abs=signed<0n?-signed:signed;
- if(c<0n||d<=0n)return result;result.decision=abs+c<=d?"Conforme":abs-c>d?"Non conforme":"Zone de garde";
+ const result={ref,ind,u,tol,error:null,decision:"Non évalué"};
+ if(ref===null||ind===null)return result;
+ try{
+  const pair=[rv,iv].map(decimalParts),pe=Math.min(...pair.map(p=>p.exp));
+  const delta=pair[1].n*10n**BigInt(pair[1].exp-pe)-pair[0].n*10n**BigInt(pair[0].exp-pe);
+  const error=Number(String(delta)+"e"+pe);if(!Number.isFinite(error)||(error===0&&delta!==0n))return result;
+  result.error=error;
+  if(u===null||u<0||tol===null||tol<=0)return result;
+  const parts=[rv,iv,uv,tv].map(decimalParts),e=Math.min(...parts.map(p=>p.exp)),[a,b,c,d]=parts.map(p=>p.n*10n**BigInt(p.exp-e));
+  const signed=b-a,abs=signed<0n?-signed:signed;
+  if(c<0n||d<=0n)return result;
+  result.decision=abs+c<=d?"Conforme":abs-c>d?"Non conforme":"Zone de garde";
  }catch{return result;}
  return result;
 }
@@ -1645,7 +1652,20 @@ function saveCalibrationRecord(){const calculatedDecision=computeOpPoints(),asse
 function renderCalHistory(){const rows=loadLS(LS.cal).sort((a,b)=>b.date.localeCompare(a.date));const el=$('#calHistoryRows');if(!el)return;el.innerHTML=rows.length?rows.map(r=>{const a=getAsset(r.assetId);return `<tr><td>${esc(r.date)}</td><td>${esc(a?.id||r.assetId)}<br><span class="mini">${esc(a?.name||'')}</span></td><td>${esc(r.type)}</td><td>${esc(r.operator||'—')}</td><td>${fmt(r.maxAbsError)}</td><td>${fmt(r.maxU)}</td><td>${severityPill(r.decision,r.decision==='Non conforme'?'bad':r.decision==='Conforme'&&r.calculatedDecision==='Conforme'?'ok':'warn')}</td><td><button class="btn" onclick="deleteCal('${r.id}')">×</button></td></tr>`}).join(''):'<tr><td colspan="8" class="subtle">Aucun historique enregistré.</td></tr>'}
 function deleteCal(id){if(!confirm('Supprimer cet enregistrement ?'))return;storeLS(LS.cal,loadLS(LS.cal).filter(r=>r.id!==id));renderGmaoAll()}
 function addUncRow(v={}){const tr=document.createElement('tr');tr.innerHTML=`<td><input class="table-input u-name" value="${esc(v.name||'')}"></td><td><input class="table-input u-val" type="number" step="any" value="${v.value??''}"></td><td><select class="table-input u-dist"><option value="normal">Normale (valeur = U, k)</option><option value="rect">Rectangulaire</option><option value="tri">Triangulaire</option><option value="direct">Déjà standard</option></select></td><td><input class="table-input u-div" type="number" step="any" value="${v.divisor??2}"></td><td><input class="table-input u-sens" type="number" step="any" value="${v.sens??1}"></td><td class="u-out">—</td><td><button class="btn" onclick="this.closest('tr').remove();calcUncertainty()">×</button></td>`;$('#uncRows').appendChild(tr);if(v.dist)tr.querySelector('.u-dist').value=v.dist;calcUncertainty()}
-function uncertainty(rows,k=2){if(!rows.length||!Number.isFinite(k)||k<=0)return null;let terms=[];for(const row of rows){const v=numberInput(row.value),s=numberInput(row.sens),d=numberInput(row.divisor);if(v===null||v<0||s===null||!["normal","rect","tri","direct"].includes(row.dist)||(row.dist==="normal"&&(d===null||d<=0)))return null;const base=row.dist==="normal"?v/d:row.dist==="rect"?v/Math.sqrt(3):row.dist==="tri"?v/Math.sqrt(6):v;const term=Math.abs(base*s);if(!Number.isFinite(term))return null;terms.push(term);}const uc=Math.hypot(...terms),U=k*uc;return Number.isFinite(U)?{terms,uc,U}:null;}
+function uncertainty(rows,k=2){
+ if(!Array.isArray(rows)||!rows.length||rows.length>10000||!Number.isFinite(k)||k<=0)return null;
+ const terms=[];let uc=0;
+ for(const row of rows){
+  if(!row||typeof row!=="object")return null;
+  const v=numberInput(row.value),s=numberInput(row.sens),d=numberInput(row.divisor);
+  if(v===null||v<0||s===null||!["normal","rect","tri","direct"].includes(row.dist)||(row.dist==="normal"&&(d===null||d<=0)))return null;
+  const base=row.dist==="normal"?v/d:row.dist==="rect"?v/Math.sqrt(3):row.dist==="tri"?v/Math.sqrt(6):v;
+  if(!Number.isFinite(base)||(base===0&&v!==0))return null;
+  const term=Math.abs(base*s);if(!Number.isFinite(term)||(term===0&&base!==0&&s!==0))return null;
+  terms.push(term);uc=Math.hypot(uc,term);
+ }
+ const U=k*uc;return Number.isFinite(U)&&!(U===0&&uc!==0)?{terms,uc,U}:null;
+}
 function calcUncertainty(){const trs=$$('#uncRows tr'),rows=trs.map(tr=>({value:tr.querySelector('.u-val').value,dist:tr.querySelector('.u-dist').value,divisor:tr.querySelector('.u-div').value,sens:tr.querySelector('.u-sens').value})),k=numberInput($('#uncK').value),result=uncertainty(rows,k);trs.forEach((tr,i)=>tr.querySelector('.u-out').textContent=result?fmt(result.terms[i]):'—');$('#ucResult').textContent=result?fmt(result.uc):'Non évalué';$('#uResult').textContent=result?fmt(result.U):'Non évalué';return result;}
 function saveCertificate(){const assetId=$('#certAsset').value,no=$('#certNo').value.trim(),date=$('#certDate').value;if(!assetId||!no||!date){alert('Équipement, numéro de certificat et date sont obligatoires.');return}const c={id:'CERT-'+Date.now(),assetId,no,date,lab:$('#certLab').value,accred:$('#certAccred').value,trace:$('#certTrace').value,unc:$('#certUnc').value,decision:$('#certDecision').value,notes:$('#certNotes').value,createdAt:new Date().toISOString()};const arr=loadLS(LS.cert);arr.push(c);storeLS(LS.cert,arr);renderGmaoAll();alert('Certificat enregistré.')}
 function renderCertificates(){const rows=loadLS(LS.cert).sort((a,b)=>b.date.localeCompare(a.date));const el=$('#certRows');if(!el)return;el.innerHTML=rows.length?rows.map(c=>{const a=getAsset(c.assetId),ap=approvalFor('certificate',c.id);return `<tr><td><b>${esc(c.no)}</b></td><td>${esc(c.date)}</td><td>${esc(a?.id||c.assetId)}<br><span class="mini">${esc(a?.name||'')}</span></td><td>${esc(c.lab||'—')}</td><td>${esc(c.decision)}</td><td>${ap?severityPill('Approuvé','ok'):severityPill('À approuver','warn')}</td><td class="nowrap"><button class="btn" onclick="printCertificate('${c.id}')">PDF</button> <button class="btn danger" onclick="deleteCert('${c.id}')">×</button></td></tr>`}).join(''):'<tr><td colspan="7" class="subtle">Aucun certificat enregistré.</td></tr>';renderApprovalTargets()}
