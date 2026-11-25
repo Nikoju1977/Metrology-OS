@@ -175,3 +175,10 @@ No new runtime, security, clinical or industrial validation was performed during
 ## Licence & auteur / License & author
 
 **© 2026 Studio Niko Design — [Nikoju1977](https://github.com/Nikoju1977).** [Notice de droits / Copyright notice](LICENSE.md) : tous droits réservés pour les contributions originales concernées ; l'accès public au code ne constitue pas une licence open source. Les composants tiers conservent leurs licences propres. Aucun fichier de licence n'a été modifié.
+
+
+## Qualification des calculs — 25 novembre 2026
+
+[Correctif précision](https://github.com/Nikoju1977/Metrology-OS/commit/c2a25d0f5a841868c1fa7eab1173fb45db11d6ec) : le moteur calcule désormais la différence décimale exacte avant sa conversion en nombre JavaScript, limitant l'annulation numérique des valeurs proches. Les entrées non nulles devenant zéro par sous-dépassement et les résultats non représentables sont refusés. Le budget RSS indépendant utilise une accumulation hypot et un plafond de 10 000 composantes ; aucun modèle de covariance n'est implémenté. Les valeurs affichées restent arrondies par fmt.
+
+[Test des fonctions de production](tests/metrology.test.cjs), exécuté par la CI : cas frontières, référence entière indépendante de 6 561 combinaisons, composantes normales/rectangulaires/triangulaires/directes, sensibilité nulle ou négative, entrées invalides. Exécution locale depuis la racine : `node tests/metrology.test.cjs`. Le [run de qualification](https://github.com/Nikoju1977/Metrology-OS/actions/runs/45705919795) doit être contrôlé avant de revendiquer la réussite. Ce test extrait les fonctions JavaScript réellement utilisées par la page ; il ne qualifie pas l'interface, la traçabilité physique, les certificats ou l'accréditation. La règle de décision reste un choix interne à approuver avant usage métier.
